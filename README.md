@@ -1,7 +1,14 @@
 
-# MADvolution2_剪辑跃迁: 智能AI剪辑视频生成工具使用说明
+# 🎬 MADvolution2_剪辑跃迁: 智能AI视频剪辑生成工具
 
-## 目录
+[![GitHub Stars](https://img.shields.io/github/stars/qingningLime/MADvolution_2?style=for-the-badge)](https://github.com/qingningLime/MADvolution_2/stargazers)
+[![License](https://img.shields.io/github/license/qingningLime/MADvolution_2?style=for-the-badge)](https://github.com/qingningLime/MADvolution_2/blob/main/LICENSE)
+
+> ✨ 全自动AI视频剪辑工具 | 🚀 一键生成专业MAD视频 | 🤖 多模态AI驱动
+
+---
+
+## 📖 目录
 - [一、项目概述](#一项目概述)
 - [快速开始](#快速开始)
 - [二、环境搭建指南](#二环境搭建指南)
@@ -13,58 +20,104 @@
 - [八、贡献与反馈](#八贡献与反馈)
 - [九、许可证与声明](#九许可证与声明)
 
-## 一、项目概述
-MADvolution_2 是一款基于AI技术的全自动MAD视频生成工具，支持从视频内容分析、音乐节奏解析到智能剪辑脚本生成、视频导出的全流程自动化。通过整合多模态模型（如Ollama视觉模型、DeepSeek语言模型）和音视频处理库（如FFmpeg、Librosa），实现了动漫视频的场景识别、音乐情感匹配及精准剪辑，大幅降低MAD创作门槛。
+## 🚀 一、项目概述
 
+**MADvolution_2** 是一款基于AI技术的全自动MAD视频生成工具，支持从视频内容分析、音乐节奏解析到智能剪辑脚本生成、视频导出的全流程自动化。
 
-## 快速开始
+🔹 **核心功能**:
+- 🖼️ 多模态AI视频分析 (Ollama视觉模型)
+- 🎵 智能音乐节奏匹配 (Librosa音频分析)
+- ✂️ 自动化剪辑脚本生成 (DeepSeek语言模型)
+- 🎥 一键导出成品视频 (FFmpeg集成)
 
-### 1. 准备工作
-1. 确保已安装Python 3.8+和FFmpeg
-2. 下载并安装Ollama 并且安装多模态模型 (https://ollama.ai/)测试环境中使用的minicpm-v
-3. 获取DeepSeek API密钥 (https://deepseek.com/)
-
-### 2. 快速体验
-```bash
-# 安装依赖(需要确保联网)
-cd src
-python install_deps.py
+🔹 **技术优势**:
+```mermaid
+graph LR
+A[视频输入] --> B[AI场景分析]
+B --> C[音乐特征提取]
+C --> D[智能剪辑脚本]
+D --> E[自动化剪辑]
+E --> F[成品视频输出]
 ```
 
-### 3. 图形界面:运行main_gui.py
+
+
+## ⚡ 快速开始
+
+### 🛠️ 1. 准备工作
+1. ✅ 安装Python 3.8+和FFmpeg
+2. ⚙️ 下载安装Ollama并加载模型:
+   ```bash
+   curl -fsSL https://ollama.ai/install.sh | sh
+   ollama run minicpm-v
+   ```
+3. 🔑 获取[DeepSeek API密钥](https://deepseek.com/)
+
+### 🚀 2. 快速体验
+```bash
+# 安装依赖
+cd src && python install_deps.py
+```
+
+### 🖥️ 3. 图形界面
 ```bash
 python src/main_gui.py
 ```
+> 💡 首次运行需在设置中配置模型参数
 
-## 二、环境搭建指南
+## 🔧 二、环境搭建指南
 
-### 2.1 系统要求
-| 系统类型       | 支持版本                 | 硬件建议（推荐）              |
-|----------------|--------------------------|-----------------------------|
-| Windows        | 10/11（64位）            | NVIDIA RTX 1650+/AMD RX 6600+，8GB内存(需CUDA或ROCM支持)   |
-| Linux          | Ubuntu 20.04+/Debian 11+  | NVIDIA GPU（需安装CUDA 11.8+） |
-| macOS          | Ventura 13+              | M1芯片+（部分功能受限）    |
+### 💻 2.1 系统要求
+| 🖥️ 系统类型 | 📌 支持版本               | ⚙️ 硬件建议                  |
+|------------|--------------------------|-----------------------------|
+| **Windows** | 10/11（64位）            | NVIDIA RTX 1650+/AMD RX 6600+ <br> 8GB内存(需CUDA或ROCM支持) |
+| **Linux**   | Ubuntu 20.04+/Debian 11+ | CUDA 11.8+                 |
+| **macOS**   | Ventura 13+              | M1芯片+                    |
 
-### 2.2 必备软件安装
+### 📦 2.2 必备软件安装
 
-#### 2.2.1 基础依赖
-- **Python 3.8+**  
-  - Windows/Linux：通过[Python官网](https://www.python.org/)下载安装包，需勾选“Add Python to PATH”。  
-  - macOS：通过Homebrew安装：  
-    ```bash
-    brew install python@3.10
-    ```
+#### 🔹 基础依赖
+<table>
+<tr>
+<th>软件</th>
+<th>安装方法</th>
+</tr>
+<tr>
+<td>
 
-- **FFmpeg**  
-  - Windows：从[华为云镜像站](https://mirrors.huaweicloud.com/ffmpeg/releases/)或其他国内源下载`ffmpeg-latest-win64-gpl.zip`，解压后将`ffmpeg.exe`复制到`C:/Windows/System32`并配置环境变量。  
-  - Linux：  
-    ```bash
-    sudo apt-get install ffmpeg
-    ```  
-  - macOS：  
-    ```bash
-    brew install ffmpeg
-    ```
+**Python 3.8+**  
+</td>
+<td>
+
+```bash
+# Windows/Linux
+https://www.python.org/downloads/
+
+# macOS
+brew install python@3.10
+```
+</td>
+</tr>
+<tr>
+<td>
+
+**FFmpeg**  
+</td>
+<td>
+
+```bash
+# Windows
+choco install ffmpeg
+
+# Linux
+sudo apt install ffmpeg
+
+# macOS
+brew install ffmpeg
+```
+</td>
+</tr>
+</table>
 
 - **Ollama（AI模型运行环境）**  
   - **安装**：  
@@ -110,11 +163,11 @@ python src/main_gui.py
   | `PyQt5`            | GUI界面开发（暂未完全启用）        |
 
 
-## 三、文件配置详解
+## ⚙️ 三、文件配置详解
 
-### 3.1 核心配置文件 `config.json`
-路径：`src/config.json`  
-**需用户手动配置的关键参数**：
+### 📄 3.1 核心配置文件 `config.json`
+📍 路径: `src/config.json`  
+🔧 **需用户手动配置的关键参数**:
 
 #### 3.1.1 Ollama本地模型配置（图像分析）
 ```json
@@ -163,12 +216,20 @@ python src/main_gui.py
   - `提示词.txt`：用户可自定义剪辑风格（如“添加赛博朋克滤镜”“加快副歌部分节奏”）。
 
 
-## 四、操作流程指南
+## 🎥 四、操作流程指南
 
-### 4.1 输入文件准备
-#### 4.1.1 目录结构说明
+### 📂 4.1 输入文件准备
+#### 🗂️ 4.1.1 目录结构说明
 
-##### 输入目录结构 (input/)
+##### 输入目录结构
+```mermaid
+graph TD
+    A[input/] --> B[music_input/]
+    A --> C[video_input/]
+    A --> D[视频批处理/]
+    D --> E[视频/]
+    D --> F[字幕/]
+```
 ```
 input/
 ├── music_input/        # [必填]背景音乐目录
@@ -277,17 +338,18 @@ python src/batch_video_processor.py
   3. 系统自动按集分析，生成合并后的长视频脚本。
 
 
-## 五、工具链使用说明
+## 🛠️ 五、工具链使用说明
 
-### 5.1 缓存清理工具
+### 🧹 5.1 缓存清理工具
 ```bash
 python src/clear_cache.py
 ```
-- **功能**：一键删除以下目录内容：  
-  - `output/`：临时分析文件  
-  - `temp_frames/`：视频帧缓存  
-  - `ai切割素材/`：旧版本切割片段  
-- **建议频率**：每次完成剪辑后执行，释放存储空间。
+✅ **功能**:  
+- 🗑️ 清理临时分析文件 (`output/`)  
+- 🖼️ 清除视频帧缓存 (`temp_frames/`)  
+- ✂️ 移除旧剪辑片段 (`ai切割素材/`)  
+
+💡 **建议**: 每次完成剪辑后执行
 
 ### 5.2 报告合并工具
 ```bash
@@ -298,13 +360,28 @@ python src/combine_reports.py
   2. 自动按时间顺序排列，添加章节分隔符。
 
 
-## 六、常见问题与解决方案
+## ❓ 六、常见问题与解决方案
 
-### 6.1 模型调用失败
-- **现象**：`video_analyzer.py`报错“无法连接到Ollama服务”。  
-- **解决**：  
-  1. 确保Ollama客户端已启动，且`config.json`中的`base_url`正确。  
-  2. 检查防火墙设置，允许本地端口`11434`通信。
+### 🔴 6.1 模型调用失败
+**症状**: 
+```bash
+ERROR: 无法连接到Ollama服务
+```
+
+**解决方案**:
+1. 检查Ollama服务状态:
+   ```bash
+   ollama serve
+   ```
+2. 验证`config.json`配置:
+   ```json
+   "base_url": "http://localhost:11434"
+   ```
+3. 防火墙设置:
+   ```bash
+   # Linux
+   sudo ufw allow 11434
+   ```
 
 ### 6.2 剪辑脚本内容混乱
 - **现象**：生成的脚本时间轴跳跃或画面与歌词不匹配。  
@@ -349,11 +426,11 @@ python src/combine_reports.py
   ```
 
 
-## 九、许可证与声明
+## 📜 九、许可证与声明
 
-### MIT 许可证
+### ⚖️ MIT 许可证
 
-版权所有 (c) 2025 MADvolution_2 开发者Lime
+© 2025 MADvolution_2 | 开发者 Lime
 
 特此免费授予任何获得本软件及相关文档文件（以下简称"软件"）副本的人无限制使用软件的权利，包括但不限于使用、复制、修改、合并、发布、分发、再许可和/或出售软件副本的权利，并允许向其提供软件的人这样做，但须符合以下条件：
 
@@ -367,8 +444,14 @@ python src/combine_reports.py
 
  
 
-**获取最新版本**：https://github.com/qingningLime/MADvolution_2  
-**联系我们**：qq：3447131904 
+<div align="center">
+
+📌 **获取最新版本**: [GitHub Release](https://github.com/qingningLime/MADvolution_2)  
+📧 **联系我们**: QQ 3447131904
 
 ---
-**感谢使用MADvolution_2！🌟** 如需帮助，请随时提交Issue或邮件联系我们。
+
+✨ **感谢使用 MADvolution_2!**  
+🐛 发现问题? 欢迎提交 [Issue](https://github.com/qingningLime/MADvolution_2/issues)
+
+</div>
