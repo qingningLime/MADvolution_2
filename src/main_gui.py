@@ -364,7 +364,7 @@ class MainWindow(QMainWindow):
         try:
             if text == "依赖安装工具":
                 import subprocess
-                subprocess.Popen(["python", "src/install_deps.py"])
+                subprocess.Popen(["python", "src/install_deps.py"], creationflags=subprocess.CREATE_NEW_CONSOLE)
             elif text == "音乐分析工具":
                 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QLabel, 
                                           QPushButton, QListWidget, QMessageBox)
@@ -497,7 +497,7 @@ class MainWindow(QMainWindow):
                     import subprocess
                     import os
                     import shutil
-                    process = subprocess.Popen(["python", "src/music_analyzer(音乐分析工具).py"])
+                    process = subprocess.Popen(["python", "src/music_analyzer(音乐分析工具).py"], creationflags=subprocess.CREATE_NEW_CONSOLE)
                     # 等待程序完成
                     process.wait()
                     if process.returncode == 0:
@@ -770,7 +770,7 @@ class MainWindow(QMainWindow):
                 dialog.exec_()
             elif text == "视频剪辑工具":
                 import subprocess
-                process = subprocess.Popen(["python", "src/auto_cut_video(视频切割).py"])
+                process = subprocess.Popen(["python", "src/auto_cut_video(视频切割).py"], creationflags=subprocess.CREATE_NEW_CONSOLE)
                 process.wait()
                 if process.returncode == 0:
                     from PyQt5.QtWidgets import QMessageBox
@@ -949,7 +949,7 @@ class MainWindow(QMainWindow):
                     
                     # 运行批量处理程序
                     import subprocess
-                    process = subprocess.Popen(["python", "src/batch_video_processor(批量处理视频内容).py"])
+                    process = subprocess.Popen(["python", "src/batch_video_processor(批量处理视频内容).py"], creationflags=subprocess.CREATE_NEW_CONSOLE)
                     process.wait()
                     if process.returncode == 0:
                         from PyQt5.QtWidgets import QMessageBox
@@ -970,7 +970,7 @@ class MainWindow(QMainWindow):
                         msg.exec_()
             elif text == "缓存清理":
                 import subprocess
-                process = subprocess.Popen(["python", "src/clear_cache缓存清理工具.py"])
+                process = subprocess.Popen(["python", "src/clear_cache缓存清理工具.py"], creationflags=subprocess.CREATE_NEW_CONSOLE)
                 process.wait()
                 if process.returncode == 0:
                     from PyQt5.QtWidgets import QMessageBox
