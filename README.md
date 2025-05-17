@@ -57,9 +57,28 @@ E --> F[成品视频输出]
 ```bash
 # 安装依赖
 cd src && python install_deps.py
+
+```markdown
+# 准备素材
+# 将视频放入input/video_input/
+# 将音乐放入input/music_input/
+
+# 运行全流程
+#批量处理视频内容(需要在批处理视频中放入视频内容和字幕内容)
+python src/batch_video_processor.py
+#整理音乐分镜(在music_input中放入音乐)
+python src/music_analyzer.py
+#生成剪辑脚本
+python src/mad_script_generator.py
+#视频切割
+python src/auto_cut_video.py
+#视频合并
+python src/video_merger.py
+
+# 结果在: 最终输出视频/歌曲名/歌曲名_final.mp4
 ```
 
-### 🖥️ 3. 图形界面
+### 🖥️ 3. 图形界面(可选)
 ```bash
 python src/main_gui.py
 ```
