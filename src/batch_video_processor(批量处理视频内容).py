@@ -87,13 +87,10 @@ def clean_temp_frames():
     """清理残留的临时帧目录"""
     temp_dir = 'temp_frames'
     if os.path.exists(temp_dir):
-        try:
-            for frame in os.listdir(temp_dir):
-                os.remove(os.path.join(temp_dir, frame))
-            os.rmdir(temp_dir)
-            print(f"已清理残留临时目录: {temp_dir}")
-        except Exception as e:
-            print(f"清理临时目录失败: {e}")
+        for frame in os.listdir(temp_dir):
+            os.remove(os.path.join(temp_dir, frame))
+        os.rmdir(temp_dir)
+        print(f"已清理残留临时目录: {temp_dir}")
 
 def process_batch(video_dir, subtitle_dir, output_dir, batch_size=1, log_path=None):
     """处理一批视频文件"""
@@ -150,41 +147,33 @@ def process_batch(video_dir, subtitle_dir, output_dir, batch_size=1, log_path=No
             subtitle_path = find_matching_subtitle(video, subtitle_dir)
             
             if subtitle_path:
-                try:
-                    # 1. 拷贝文件到处理目录
-                    shutil.copy2(video_path, output_dir)
-                    shutil.copy2(subtitle_path, output_dir)
-                    print(f"已拷贝: {video} 和匹配的字幕")
+                # 1. 拷贝文件到处理目录
+                shutil.copy2(video_path, output_dir)
+                shutil.copy2(subtitle_path, output_dir)
+                print(f"已拷贝: {video} 和匹配的字幕")
+            
+                # 2. 执行视频分析
+                print("正在执行video_analyzer.py...")
+                import video_analyzer
+                video_analyzer.main()
                 
-                    # 2. 执行视频分析
-                    print("正在执行video_analyzer.py...")
-                    subprocess.run(['python', 'src/video_analyzer.py'], check=True)
-                    
-                    # 3. 检查分析结果
-                    if check_analysis_success(video):
-                        print(f"视频 {video} 分析完成，清理输入目录")
-                        for f in os.listdir(output_dir):
-                            os.remove(os.path.join(output_dir, f))
-                            
-                        # 更新日志状态为完成
-                        video_log['status'] = 'completed'
-                        video_log['end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        save_log(log_path, log_data)
-                    else:
-                        print(f"警告: 视频 {video} 分析文档未生成")
-                        video_log['status'] = 'failed'
-                        video_log['error'] = '分析文档未生成'
-                        save_log(log_path, log_data)
-                        return False
+                # 3. 检查分析结果
+                if check_analysis_success(video):
+                    print(f"视频 {video} 分析完成，清理输入目录")
+                    for f in os.listdir(output_dir):
+                        os.remove(os.path.join(output_dir, f))
                         
-                except Exception as e:
-                    print(f"错误: 视频处理失败 - {e}")
+                    # 更新日志状态为完成
+                    video_log['status'] = 'completed'
+                    video_log['end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    save_log(log_path, log_data)
+                else:
+                    print(f"警告: 视频 {video} 分析文档未生成")
                     video_log['status'] = 'failed'
-                    video_log['error'] = str(e)
+                    video_log['error'] = '分析文档未生成'
                     save_log(log_path, log_data)
                     return False
-                finally:
-                    clean_temp_frames()
+                clean_temp_frames()
             else:
                 print(f"警告: 未找到 {video} 的字幕文件")
                 return False

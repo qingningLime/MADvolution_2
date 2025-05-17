@@ -60,11 +60,8 @@ class DeepseekRAG:
     def _load_prompt_files(self, prompt_files):
         """加载提示词文件到缓存"""
         for key, filepath in prompt_files.items():
-            try:
-                with open(filepath, "r", encoding="utf-8") as f:
-                    self.prompt_cache[key] = f.read()
-            except FileNotFoundError:
-                self.prompt_cache[key] = f"无法加载提示词文件: {filepath}"
+            with open(filepath, "r", encoding="utf-8") as f:
+                self.prompt_cache[key] = f.read()
 
     def query(self, question, top_k=3):
         """查询RAG系统"""

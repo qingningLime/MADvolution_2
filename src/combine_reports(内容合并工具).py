@@ -55,29 +55,23 @@ def cleanup_files(input_dir, output_folder):
     # 删除原始报告文件
     for filename in os.listdir(input_dir):
         file_path = os.path.join(input_dir, filename)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-                print(f"已删除: {file_path}")
-                deleted_count += 1
-        except Exception as e:
-            print(f"删除文件{file_path}时出错: {e}")
+        if os.path.isfile(file_path):
+            os.unlink(file_path)
+            print(f"已删除: {file_path}")
+            deleted_count += 1
     
     # 删除output文件夹内容
     if os.path.exists(output_folder):
         for item in os.listdir(output_folder):
             item_path = os.path.join(output_folder, item)
-            try:
-                if os.path.isdir(item_path):
-                    shutil.rmtree(item_path)
-                    print(f"已删除目录: {item_path}")
-                    deleted_count += 1
-                else:
-                    os.unlink(item_path)
-                    print(f"已删除文件: {item_path}")
-                    deleted_count += 1
-            except Exception as e:
-                print(f"删除{item_path}时出错: {e}")
+            if os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+                print(f"已删除目录: {item_path}")
+                deleted_count += 1
+            else:
+                os.unlink(item_path)
+                print(f"已删除文件: {item_path}")
+                deleted_count += 1
     
     print(f"\n删除完成，共删除 {deleted_count} 个文件/目录")
 

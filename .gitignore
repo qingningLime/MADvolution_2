@@ -1,0 +1,10 @@
+*.mp4
+*.mkv
+*.ass
+*.jpg
+*.mp3
+*.lrc
+
+*__pycache__*
+
+*.txt

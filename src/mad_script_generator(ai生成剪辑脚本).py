@@ -47,14 +47,11 @@ class MadScriptGenerator:
         for filename in sorted(os.listdir(content_dir)):
             filepath = os.path.join(content_dir, filename)
             if os.path.isfile(filepath) and not filename.startswith('.'):
-                try:
-                    with open(filepath, 'r', encoding='utf-8') as f:
-                        file_content = f.read().strip()
-                        if file_content:
-                            content += f"\n\n=== 分析数据文件: {filename} ===\n{file_content}"
-                            file_count += 1
-                except Exception as e:
-                    print(f"警告: 读取文件 {filename} 时出错 - {str(e)}")
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    file_content = f.read().strip()
+                    if file_content:
+                        content += f"\n\n=== 分析数据文件: {filename} ===\n{file_content}"
+                        file_count += 1
         
         print(f"已加载 {file_count} 个分析数据文件")
         if not content:
