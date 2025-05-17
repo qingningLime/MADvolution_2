@@ -111,19 +111,50 @@ def check_gpu_support():
 def cut_video_reencode(input_file, output_file, start, end):
     """处理10-bit视频的AMD加速方案"""
     if check_gpu_support():
-        # 先尝试HEVC编码
-        cmd = [
-            'ffmpeg',
-            '-ss', parse_time(start),
-            '-to', parse_time(end),
-            '-i', input_file,
-            '-c:v', 'hevc_nvenc',
-            '-pix_fmt', 'p010le',
-            str(output_file)
-        ]
-        print("使用HEVC_NVENC 10-bit编码")
-        subprocess.run(cmd, check=True)
-        return
+def cut_video_reencode(input_file, output_file, start, end):
+    """处理10-bit视频的AMD加速方案"""
+    if check_gpu_support():
+        try:
+            # 先尝试HEVC编码
+            cmd = [
+                'ffmpeg',
+                '-hwaccel', 'cuda',
+                '-hwaccel_device', '1',
+                '-ss', parse_time(start),
+                '-to', parse_time(end),
+                '-i', input_file,
+                '-c:v', 'hevc_nvenc',
+                '-quality', 'balanced',
+                '-rc', 'cqp',
+                '-qp_i', '18',
+                '-qp_p', '18',
+                '-c:a', 'aac',
+                '-b:a', '192k',
+                str(output_file)
+            ]
+            print("使用HEVC_AMF 10-bit编码")
+            subprocess.run(cmd, check=True)
+            return
+        except subprocess.CalledProcessError:
+            # HEVC失败则回退到8-bit H264
+            print("HEVC编码失败，转用8-bit H264")
+            cmd = [
+                'ffmpeg',
+                '-hwaccel', 'auto',
+                '-hwaccel_device', '1',
+                '-ss', parse_time(start),
+                '-to', parse_time(end),
+                '-i', input_file,
+                '-pix_fmt', 'yuv420p',
+                '-c:v', 'h264_amf',
+                '-quality', 'balanced',
+                '-rc', 'cqp',
+                '-qp_i', '18',
+                '-qp_p', '18',
+                '-c:a', 'aac',
+                '-b:a', '192k',
+                str(output_file)
+            ]
     else:
         # CPU回退方案
         cmd = [
@@ -131,8 +162,11 @@ def cut_video_reencode(input_file, output_file, start, end):
             '-ss', parse_time(start),
             '-to', parse_time(end),
             '-i', input_file,
-            '-c:v', 'libx265',
+            '-c:v', 'libx264',
+            '-crf', '18',
             '-preset', 'fast',
+            '-c:a', 'aac',
+            '-b:a', '192k',
             str(output_file)
         ]
         print("使用CPU渲染(未检测到AMD GPU支持)")
@@ -181,3 +215,4 @@ if __name__ == "__main__":
     print("\n视频切割完成，开始合并...")
     import video_merger
     video_merger.main()
+
