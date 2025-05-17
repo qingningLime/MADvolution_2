@@ -64,14 +64,10 @@ def process_subtitles(video_path):
             if not external_sub.lower().endswith('.txt'):
                 print("仅支持.txt格式字幕文件")
                 continue
-            try:
-                import shutil
-                shutil.copy2(external_sub, txt_path)
-                print(f"已复制字幕文件到: {txt_path}")
-                return txt_path
-            except Exception as e:
-                print(f"复制字幕文件出错: {e}")
-                continue
+            import shutil
+            shutil.copy2(external_sub, txt_path)
+            print(f"已复制字幕文件到: {txt_path}")
+            return txt_path
     
     ass_path = os.path.join(video_dir, ass_files[0])
     
@@ -165,18 +161,13 @@ def monitor_frames(output_dir):
     """监控并单行实时显示最新帧文件"""
     last_frame = None
     while True:
-        try:
-            if os.path.exists(output_dir):
-                frames = [f for f in os.listdir(output_dir) if f.startswith('frame_')]
-                if frames:
-                    latest = sorted(frames)[-1]
-                    if latest != last_frame:
-                        print(f"\r最新关键帧: {os.path.join(output_dir, latest)}", end="", flush=True)
-                        last_frame = latest
-            time.sleep(0.1)  # 更快的刷新频率
-        except Exception as e:
-            print(f"\n监控线程出错: {e}")
-            break
+        if os.path.exists(output_dir):
+            frames = [f for f in os.listdir(output_dir) if f.startswith('frame_')]
+            if frames:
+                latest = sorted(frames)[-1]
+                if latest != last_frame:
+                    print(f"\r最新关键帧: {os.path.join(output_dir, latest)}", end="", flush=True)
+                    last_frame = latest
 
 def extract_keyframes(video_path, output_dir, interval=5):
     """提取视频关键帧(使用GPU加速)"""
@@ -187,7 +178,7 @@ def extract_keyframes(video_path, output_dir, interval=5):
     if subtitle_file:
         print(f"已生成字幕文件: {subtitle_file}")
         # 确保字幕文件已完全写入
-        time.sleep(1)
+
     
     # 启动监控线程
     monitor_thread = threading.Thread(
@@ -229,54 +220,44 @@ def check_ollama_connection():
     client = ollama.Client(host='http://localhost:11434')
     max_retries = 3
     for i in range(max_retries):
-        try:
-            client.list()  # 简单API调用测试连接
-            return client
-        except ConnectError:
-            if i < max_retries - 1:
-                time.sleep(2)  # 等待2秒重试
-                continue
-            raise ConnectionError("无法连接到Ollama服务")
+        client.list()  # 简单API调用测试连接
+        return client
 
 def analyze_frames(frame_paths, model_name=None, prompt=None):
     """使用ollama分析多帧图像(优化GPU版本)"""
-    try:
-        # 验证所有图片有效性
-        for frame_path in frame_paths:
-            with Image.open(frame_path) as img:
-                img.verify()
+    # 验证所有图片有效性
+    for frame_path in frame_paths:
+        with Image.open(frame_path) as img:
+            img.verify()
+    
+    client = check_ollama_connection()
+    
+    if prompt is None:
+        prompt = "这是5张连续的动漫视频截图，请尽可能简略描述这个片段的内容，必须使用中文返回结果，描述时请专注于画面中人物，环境，动作，忽略文字信息，保持简洁"
+    
+    if model_name is None:
+        model_name = "llava"
         
-        client = check_ollama_connection()
+    # 简化参数设置
+    options = {
+        'num_thread': 2
+    }
+    
+    # 分批处理
+    max_batch_size = 5
+    responses = []
+    for i in range(0, len(frame_paths), max_batch_size):
+        batch = frame_paths[i:i+max_batch_size]
         
-        if prompt is None:
-            prompt = "这是5张连续的动漫视频截图，请尽可能简略描述这个片段的内容，必须使用中文返回结果，描述时请专注于画面中人物，环境，动作，忽略文字信息，保持简洁"
-        
-        if model_name is None:
-            model_name = "llava"
+        response = client.generate(
+            model=model_name,
+            prompt=prompt,
+            images=batch,
+            options=options
+        )
+        responses.append(response['response'].strip())
             
-        # 简化参数设置
-        options = {
-            'num_thread': 2
-        }
-        
-        # 分批处理
-        max_batch_size = 5
-        responses = []
-        for i in range(0, len(frame_paths), max_batch_size):
-            batch = frame_paths[i:i+max_batch_size]
-            
-            response = client.generate(
-                model=model_name,
-                prompt=prompt,
-                images=batch,
-                options=options
-            )
-            responses.append(response['response'].strip())
-                
-        return " ".join(responses)
-    except Exception as e:
-        print(f"分析帧 {frame_path} 时出错: {str(e)}")
-        return "分析失败"
+    return " ".join(responses)
 
 def generate_report(analyses, video_name):
     """生成简化报告"""
@@ -324,16 +305,13 @@ def main():
     min_memory_mb = 1000
     
     if os.path.exists('src/config.json'):
-        try:
-            with open('src/config.json', 'r', encoding='utf-8') as f:
-                config = json.load(f)
-                prompt = config.get('prompt')
-                model_name = config.get('model_name')
-                max_concurrent = config.get('max_concurrent_frames', 2)
-                processing_interval = config.get('processing_interval', 1.0)
-                min_memory_mb = config.get('min_free_memory_mb', 1000)
-        except Exception as e:
-            print(f"读取配置文件出错: {e}")
+        with open('src/config.json', 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            prompt = config.get('prompt')
+            model_name = config.get('model_name')
+            max_concurrent = config.get('max_concurrent_frames', 2)
+            processing_interval = config.get('processing_interval', 1.0)
+            min_memory_mb = config.get('min_free_memory_mb', 1000)
 
     temp_dir = 'temp_frames'
     input_dir = 'input/video_input'
@@ -347,52 +325,40 @@ def main():
     # 创建信号量控制并发
     semaphore = threading.Semaphore(max_concurrent)
     
-    try:
-        analyses = []
-        for video_file in video_files:
-            video_path = os.path.join(input_dir, video_file)
-            extract_keyframes(video_path, temp_dir)
-            
-            frames = sorted(os.listdir(temp_dir))
-            total_frames = len(frames)
-            frame_groups = [frames[i:i+5] for i in range(0, len(frames), 5)]
-            
-            for group_idx, frame_group in enumerate(frame_groups):
-                frame_paths = [os.path.join(temp_dir, frame) for frame in frame_group]
-                # 显示清晰的进度信息
-                print(f"\r[处理进度] 关键帧组 {group_idx+1}/{len(frame_groups)} - 当前处理: {', '.join(frame_group)}", end="", flush=True)
-                
-                # 获取信号量
-                semaphore.acquire()
-                
-                try:
-                    desc = analyze_frames(frame_paths, model_name=model_name, prompt=prompt)
-                    time.sleep(processing_interval)  # 处理间隔
-                    
-                    analyses.append(desc)
-                    report_path = generate_report(analyses, video_file)
-                except Exception as e:
-                    print(f"\n处理帧{frame_group}时出错: {str(e)}")
-                    analyses.append((group_idx*5, f"分析失败: {str(e)}"))
-                finally:
-                    semaphore.release()  # 释放信号量
+    analyses = []
+    for video_file in video_files:
+        video_path = os.path.join(input_dir, video_file)
+        extract_keyframes(video_path, temp_dir)
         
-    finally:
-        print("清理临时文件...")
-        try:
-            if os.path.exists(temp_dir):
-                for frame in os.listdir(temp_dir):
-                    try:
-                        os.remove(os.path.join(temp_dir, frame))
-                    except Exception as e:
-                        print(f"删除临时文件{frame}失败: {e}")
-                os.rmdir(temp_dir)
-        except Exception as e:
-            print(f"清理临时目录失败: {e}")
+        frames = sorted(os.listdir(temp_dir))
+        total_frames = len(frames)
+        frame_groups = [frames[i:i+5] for i in range(0, len(frames), 5)]
+        
+        for group_idx, frame_group in enumerate(frame_groups):
+            frame_paths = [os.path.join(temp_dir, frame) for frame in frame_group]
+            # 显示清晰的进度信息
+            print(f"\r[处理进度] 关键帧组 {group_idx+1}/{len(frame_groups)} - 当前处理: {', '.join(frame_group)}", end="", flush=True)
+            
+            # 获取信号量
+            semaphore.acquire()
+            
+            desc = analyze_frames(frame_paths, model_name=model_name, prompt=prompt)
+
+            
+            analyses.append(desc)
+            report_path = generate_report(analyses, video_file)
+        
+
+    print("清理临时文件...")
+    if os.path.exists(temp_dir):
+        for frame in os.listdir(temp_dir):
+            os.remove(os.path.join(temp_dir, frame))
+        os.rmdir(temp_dir)
+
+    # 自动运行AI分析处理器
+    import ai_auto_processor
+    ai_auto_processor.main()
 
 
 if __name__ == '__main__':
     main()
-    # 自动运行AI分析处理器
-    import subprocess
-    subprocess.run(['python', 'src/ai_auto_processor.py'])

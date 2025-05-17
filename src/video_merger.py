@@ -59,51 +59,47 @@ def add_music(video_file, audio_file, output_file):
     ], check=True)
 
 def main():
-    try:
-        video_files = get_video_clips()
-        audio_file = get_music_file()
-        song_name = extract_song_name(audio_file)
-        
-        output_dir = Path("最终输出视频") / song_name
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
-        print(f"找到 {len(video_files)} 个视频片段，音乐：{audio_file.name}")
-        
-        # 合并视频
-        merged_video = merge_videos(video_files, output_dir)
-        
-        # 获取音乐时长
-        probe = subprocess.run([
-            "ffprobe",
-            "-v", "error",
-            "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1",
-            str(audio_file)
-        ], capture_output=True, text=True, check=True)
-        music_duration = float(probe.stdout.strip())
-        
-        # 截取与音乐等长的视频
-        trimmed_video = output_dir / "trimmed.mp4"
-        subprocess.run([
-            "ffmpeg",
-            "-i", str(merged_video),
-            "-t", str(music_duration),
-            "-c", "copy",
-            str(trimmed_video)
-        ], check=True)
-        
-        # 添加音乐
-        final_output = output_dir / f"{song_name}_final.mp4"
-        add_music(trimmed_video, audio_file, final_output)
-        
-        # 清理临时文件
-        merged_video.unlink(missing_ok=True)
-        trimmed_video.unlink(missing_ok=True)
-        
-        print(f"视频合并完成！保存至：{final_output}")
-        
-    except Exception as e:
-        print(f"处理失败：{str(e)}")
+    video_files = get_video_clips()
+    audio_file = get_music_file()
+    song_name = extract_song_name(audio_file)
+    
+    output_dir = Path("最终输出视频") / song_name
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    print(f"找到 {len(video_files)} 个视频片段，音乐：{audio_file.name}")
+    
+    # 合并视频
+    merged_video = merge_videos(video_files, output_dir)
+    
+    # 获取音乐时长
+    probe = subprocess.run([
+        "ffprobe",
+        "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        str(audio_file)
+    ], capture_output=True, text=True, check=True)
+    music_duration = float(probe.stdout.strip())
+    
+    # 截取与音乐等长的视频
+    trimmed_video = output_dir / "trimmed.mp4"
+    subprocess.run([
+        "ffmpeg",
+        "-i", str(merged_video),
+        "-t", str(music_duration),
+        "-c", "copy",
+        str(trimmed_video)
+    ], check=True)
+    
+    # 添加音乐
+    final_output = output_dir / f"{song_name}_final.mp4"
+    add_music(trimmed_video, audio_file, final_output)
+    
+    # 清理临时文件
+    merged_video.unlink(missing_ok=True)
+    trimmed_video.unlink(missing_ok=True)
+    
+    print(f"视频合并完成！保存至：{final_output}")
 
 if __name__ == "__main__":
     main()

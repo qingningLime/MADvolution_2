@@ -57,11 +57,8 @@ def get_frame_rate(video_file):
     """获取视频帧率"""
     cmd = ['ffprobe', '-v', 'error', '-select_streams', 'v:0',
            '-show_entries', 'stream=r_frame_rate', '-of', 'csv=p=0', video_file]
-    result = subprocess.run(cmd, stdout=subprocess.PIPE, text=True)
-    try:
-        return float(eval(result.stdout.strip()))  # 处理分数形式的帧率
-    except:
-        return 24.0  # 默认帧率
+    result = subprocess.run(cmd, text=True)
+    return float(eval(result.stdout.strip()))  # 处理分数形式的帧率
 
 def find_nearest_keyframe(video_file, timestamp):
     """查找最近的关键帧(优先向后偏移)"""
@@ -72,7 +69,7 @@ def find_nearest_keyframe(video_file, timestamp):
         '-print_format', 'csv', '-show_entries', 'frame=key_frame,pkt_pts_time',
         video_file
     ]
-    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    result = subprocess.run(cmd, stderr=subprocess.DEVNULL, text=True)
     
     # 获取所有关键帧时间点
     keyframes = [float(line.split(',')[1]) for line in result.stdout.splitlines()
@@ -107,57 +104,26 @@ def cut_video_copy(input_file, output_file, start, end):
 
 def check_gpu_support():
     """检查GPU支持情况"""
-    try:
-        result = subprocess.run(['ffmpeg', '-hide_banner', '-encoders'], 
-                              capture_output=True, text=True)
-        return 'h264_nvenc' in result.stdout or 'h264_amf' in result.stdout
-    except:
-        return False
+    result = subprocess.run(['ffmpeg', '-hide_banner', '-encoders'], 
+                            capture_output=True, text=True)
+    return 'h264_nvenc' in result.stdout or 'h264_amf' in result.stdout
 
 def cut_video_reencode(input_file, output_file, start, end):
     """处理10-bit视频的AMD加速方案"""
     if check_gpu_support():
-        try:
-            # 先尝试HEVC编码
-            cmd = [
-                'ffmpeg',
-                '-hwaccel', 'cuda',
-                '-hwaccel_device', '1',
-                '-ss', parse_time(start),
-                '-to', parse_time(end),
-                '-i', input_file,
-                '-c:v', 'hevc_amf',
-                '-quality', 'balanced',
-                '-rc', 'cqp',
-                '-qp_i', '18',
-                '-qp_p', '18',
-                '-c:a', 'aac',
-                '-b:a', '192k',
-                str(output_file)
-            ]
-            print("使用HEVC_AMF 10-bit编码")
-            subprocess.run(cmd, check=True)
-            return
-        except subprocess.CalledProcessError:
-            # HEVC失败则回退到8-bit H264
-            print("HEVC编码失败，转用8-bit H264")
-            cmd = [
-                'ffmpeg',
-                '-hwaccel', 'auto',
-                '-hwaccel_device', '1',
-                '-ss', parse_time(start),
-                '-to', parse_time(end),
-                '-i', input_file,
-                '-pix_fmt', 'yuv420p',
-                '-c:v', 'h264_amf',
-                '-quality', 'balanced',
-                '-rc', 'cqp',
-                '-qp_i', '18',
-                '-qp_p', '18',
-                '-c:a', 'aac',
-                '-b:a', '192k',
-                str(output_file)
-            ]
+        # 先尝试HEVC编码
+        cmd = [
+            'ffmpeg',
+            '-ss', parse_time(start),
+            '-to', parse_time(end),
+            '-i', input_file,
+            '-c:v', 'hevc_nvenc',
+            '-pix_fmt', 'p010le',
+            str(output_file)
+        ]
+        print("使用HEVC_NVENC 10-bit编码")
+        subprocess.run(cmd, check=True)
+        return
     else:
         # CPU回退方案
         cmd = [
@@ -165,11 +131,8 @@ def cut_video_reencode(input_file, output_file, start, end):
             '-ss', parse_time(start),
             '-to', parse_time(end),
             '-i', input_file,
-            '-c:v', 'libx264',
-            '-crf', '18',
+            '-c:v', 'libx265',
             '-preset', 'fast',
-            '-c:a', 'aac',
-            '-b:a', '192k',
             str(output_file)
         ]
         print("使用CPU渲染(未检测到AMD GPU支持)")
@@ -215,11 +178,6 @@ def main():
 if __name__ == "__main__":
     main()
     # 视频切割完成后自动运行合并工具
-    try:
-        print("\n视频切割完成，开始合并...")
-        import subprocess
-        subprocess.run(["python", "src/video_merger(视频合并工具).py"], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"视频合并失败: {e}")
-    except Exception as e:
-        print(f"运行合并工具时发生错误: {e}")
+    print("\n视频切割完成，开始合并...")
+    import video_merger
+    video_merger.main()

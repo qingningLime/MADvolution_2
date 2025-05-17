@@ -9,22 +9,15 @@ def clear_directory_contents(dir_path):
     for root, dirs, files in os.walk(dir_path):
         for file in files:
             file_path = os.path.join(root, file)
-            try:
-                os.remove(file_path)
-                file_count += 1
-            except Exception as e:
-                print(f"无法删除文件 {file_path}: {str(e)}")
+            os.remove(file_path)
+            file_count += 1
     
     # 然后删除空目录(从最深层开始)
     for root, dirs, files in os.walk(dir_path, topdown=False):
         for dir in dirs:
             dir_path = os.path.join(root, dir)
-            try:
-                os.rmdir(dir_path)
-                print(f"已删除空目录: {dir_path}")
-            except OSError:
-                # 目录非空时会抛出异常，此时跳过
-                pass
+            os.rmdir(dir_path)
+            print(f"已删除空目录: {dir_path}")
     
     return file_count
 

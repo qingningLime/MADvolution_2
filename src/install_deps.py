@@ -18,24 +18,18 @@ def check_python_version() -> bool:
 
 def run_command(cmd: str, admin: bool = False) -> Tuple[bool, str]:
     """运行系统命令"""
-    try:
-        if admin and platform.system() == "Windows":
-            cmd = f"powershell Start-Process -Verb RunAs -Wait -FilePath cmd -ArgumentList '/c {cmd}'"
-        result = subprocess.run(cmd, shell=True, check=True, 
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                              text=True)
-        return True, result.stdout
-    except subprocess.CalledProcessError as e:
-        return False, e.stderr
+    if admin and platform.system() == "Windows":
+        cmd = f"powershell Start-Process -Verb RunAs -Wait -FilePath cmd -ArgumentList '/c {cmd}'"
+    result = subprocess.run(cmd, shell=True, check=True, 
+                            
+                            text=True)
+    return True, result.stdout
 
 def check_ffmpeg() -> bool:
     """检查FFmpeg是否安装"""
-    try:
-        subprocess.run(["ffmpeg", "-version"], check=True, 
-                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
+    subprocess.run(["ffmpeg", "-version"], check=True, 
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return True
 
 def install_ffmpeg() -> bool:
     """安装FFmpeg"""
@@ -69,12 +63,8 @@ def install_ffmpeg() -> bool:
 
 def check_cuda() -> bool:
     """检查CUDA环境"""
-    try:
-        subprocess.run(["nvcc", "--version"], check=True,
-                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
+    subprocess.run(["nvcc", "--version"], check=True,
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def install_python_deps() -> bool:
     """安装Python依赖"""

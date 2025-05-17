@@ -17,30 +17,24 @@ def process_lyrics(input_file):
     
     # 尝试多种编码读取(包括带BOM的UTF-8)
     for encoding in ['utf-8-sig', 'gb18030', 'gbk', 'big5', 'utf-16', 'utf-16-le', 'utf-16-be']:
-        try:
-            with open(input_file, 'r', encoding=encoding) as f:
-                lines = f.readlines()
-                # 检查是否有替换字符(表示解码可能有问题)
-                if any('\ufffd' in line for line in lines):
-                    continue
-                # 检查是否有明显乱码
-                if any(not any('\u4e00' <= c <= '\u9fff' or c.isalnum() or c.isspace() or c in '，。！？、；：（）【】《》' for c in line) 
-                       and any('\u4e00' <= c <= '\u9fff' for c in line) for line in lines[:10]):
-                    continue
-                break
-        except UnicodeDecodeError:
-            continue
+        with open(input_file, 'r', encoding=encoding) as f:
+            lines = f.readlines()
+            # 检查是否有替换字符(表示解码可能有问题)
+            if any('\ufffd' in line for line in lines):
+                continue
+            # 检查是否有明显乱码
+            if any(not any('\u4e00' <= c <= '\u9fff' or c.isalnum() or c.isspace() or c in '，。！？、；：（）【】《》' for c in line) 
+                    and any('\u4e00' <= c <= '\u9fff' for c in line) for line in lines[:10]):
+                continue
+            break
     else:
         # 如果所有编码都失败，尝试自动检测
         with open(input_file, 'rb') as f:
             raw = f.read()
             for encoding in ['utf-8', 'gb18030', 'gbk', 'big5']:
-                try:
-                    lines = raw.decode(encoding).splitlines()
-                    if not any('\ufffd' in line for line in lines):
-                        break
-                except:
-                    continue
+                lines = raw.decode(encoding).splitlines()
+                if not any('\ufffd' in line for line in lines):
+                    break
             else:
                 # 最后尝试忽略错误
                 lines = raw.decode('utf-8', errors='ignore').splitlines()
@@ -155,13 +149,10 @@ def find_matching_audio(lyric_file):
 
 def get_audio_duration(audio_path):
     """获取音频时长"""
-    try:
-        audio = mutagen.File(audio_path)
-        if audio is None:
-            return None
-        return f"{int(audio.info.length//60):02d}:{int(audio.info.length%60):02d}"
-    except Exception:
+    audio = mutagen.File(audio_path)
+    if audio is None:
         return None
+    return f"{int(audio.info.length//60):02d}:{int(audio.info.length%60):02d}"
 
 def detect_interludes(low_energy, duration):
     """检测间奏时间段"""
@@ -361,31 +352,18 @@ def main():
     for file in INPUT_DIR.iterdir():
         if file.suffix.lower() in LYRIC_EXTENSIONS:
             print(f"处理文件: {file.name}")
-            try:
-                # 处理歌词并生成processed.txt
-                lyrics_file, duration = process_lyrics(file)
-                
-                # 查找匹配的音频文件
-                audio_file = find_matching_audio(file)
-                if audio_file:
-                    # 使用processed.txt进行情感分析
-                    processed_file = OUTPUT_DIR / f"{file.stem}_processed.txt"
-                    analyze_music(audio_file, processed_file)
-                    print(f"成功处理: {file.name}")
-                else:
-                    print(f"警告: 未找到匹配的音频文件")
-            except Exception as e:
-                print(f"处理 {file.name} 时出错:")
-                traceback.print_exc()
+            # 处理歌词并生成processed.txt
+            lyrics_file, duration = process_lyrics(file)
+            
+            # 查找匹配的音频文件
+            audio_file = find_matching_audio(file)
+            if audio_file:
+                # 使用processed.txt进行情感分析
+                processed_file = OUTPUT_DIR / f"{file.stem}_processed.txt"
+                analyze_music(audio_file, processed_file)
+                print(f"成功处理: {file.name}")
+            else:
+                print(f"警告: 未找到匹配的音频文件")
 
 if __name__ == "__main__":
-    try:
-        main()
-    finally:
-        # 清理输出目录中的内容但保留目录结构
-        if OUTPUT_DIR.exists():
-            for item in OUTPUT_DIR.iterdir():
-                if item.is_file():
-                    item.unlink()
-                elif item.is_dir():
-                    shutil.rmtree(item, ignore_errors=True)
+    main()
